@@ -1,0 +1,40 @@
+# 网格分辨率与步长
+dx = 1./res_y  # 网格单元在y方向的步长（由分辨率res_y推导）
+
+# Taichi初始化（指定CUDA架构、显存限制）
+ti.init(arch=ti.cuda, device_memory_GB=10.0, debug = False)
+
+# 粒子相关参数
+particles_per_cell_axis = 2  # 每个网格单元沿轴的粒子数
+dist_between_neighbor = dx / particles_per_cell_axis  # 粒子间距离
+one_sixth = 1. / 6  # RK4积分的系数（1/6）
+
+# 边界条件与泊松求解器初始化（3D多重网格CG solver）
+boundary_types = ti.Matrix([[2, 2], [2, 2], [2, 2]], ti.i32)  # 2=Neumann边界（通量连续）
+solver = MGPCG_3(boundary_types = boundary_types, N = [res_x, res_y, res_z], base_level=3)
+
+# 网格坐标存储（未变形的初始坐标：单元格中心、x/y/z方向面坐标）
+X = ti.Vector.field(3, float, shape=(res_x, res_y, res_z))  # 单元格中心坐标
+X_x = ti.Vector.field(3, float, shape=(res_x+1, res_y, res_z))  # x方向面坐标
+# ... 省略X_y、X_z的定义 ...
+
+# 粒子存储（位置、初始冲量、梯度、烟雾属性等）
+initial_particle_num = res_x * res_y * res_z * particles_per_cell  # 初始粒子总数
+particle_num = initial_particle_num * total_particles_num_ratio  # 实际粒子数（按比例缩放）
+particles_pos = ti.Vector.field(3, float, shape=particle_num)  # 粒子当前位置
+particles_init_imp = ti.Vector.field(3, float, shape=particle_num)  # 粒子初始冲量
+# ... 省略烟雾属性、梯度存储的定义 ...
+
+# 流映射相关存储（back flow map：用于追踪流体运动的逆映射）
+T_x_init = ti.Vector.field(3, float, shape=particle_num)  # 初始流映射的x方向导数
+# ... 省略T_y_init、T_z_init及网格级流映射的定义 ...
+
+# 速度场存储（MAC网格：速度分量存储在不同面，保证数值稳定性）
+u = ti.Vector.field(3, float, shape=(res_x, res_y, res_z))  # 单元格中心速度（3D向量）
+u_x = ti.field(float, shape=(res_x+1, res_y, res_z))  # x方向速度（存储在x面）
+# ... 省略u_y、u_z的定义 ...
+
+# 其他辅助存储（P2G权重、CFL条件的最大速度、烟雾场）
+p2g_weight = ti.field(float, shape=(res_x, res_y, res_z))  # 粒子到网格的插值权重
+max_speed = ti.field(float, shape=())  # 用于CFL条件的最大速度
+smoke = ti.Vector.field(4, float, shape=(res_x, res_y, res_z))  # 烟雾场（RGBA或浓度+属性）

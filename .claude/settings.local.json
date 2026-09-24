@@ -1,0 +1,41 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -c *)",
+      "Bash(python *)",
+      "Bash(python3 *)",
+      "Bash(pip *)",
+      "Bash(pip3 *)",
+      "Bash(/c/Users/go/.conda/envs/test/python.exe *)",
+      "Bash(conda *)",
+      "Bash(cd *)",
+      "Bash(ls *)",
+      "Bash(dir *)",
+      "Bash(which *)",
+      "Bash(echo *)",
+      "Bash(cat *)",
+      "Bash(type *)",
+      "Bash(git *)",
+      "Bash(npm *)",
+      "Bash(npx *)",
+      "Bash(node *)",
+      "Bash(mkdir *)",
+      "Bash(rm *)",
+      "Bash(cp *)",
+      "Bash(mv *)",
+      "Bash(curl *)",
+      "Bash(wget *)",
+      "Bash(grep *)",
+      "Bash(find *)",
+      "Bash(*)",
+      "Read",
+      "Write",
+      "Edit",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch"
+    ],
+    "defaultMode": "bypassPermissions"
+  }
+}
